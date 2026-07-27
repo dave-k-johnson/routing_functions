@@ -1,7 +1,6 @@
 module ConnectedComponents
 
-import LinearAlgebra
-import HomotopyContinuation
+using HomotopyContinuation, LinearAlgebra, SciMLBase, OrdinaryDiffEq
 
 const HC = HomotopyContinuation
 const LA = LinearAlgebra
