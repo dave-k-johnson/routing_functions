@@ -40,5 +40,23 @@ Passing `r` and `G` separately builds a throwaway cache on every call, so do tha
 only for one-off work. A cache carries mutable buffers and must not be shared
 across threads -- build one per thread.
 
+### Badly scaled systems
+
+The routing points are seeded by flowing from random points of `[-box, box]^n`
+projected onto `V(G)`. If your equations carry large constants, the default
+`box = 3.0` misses the variety entirely and almost nothing projects onto it.
+`flow_to_routing_points` discards starts that fail to land (they cost a full ODE
+integration and contribute nothing) and warns when it cannot fill `nstarts`:
+
+```
+┌ Warning: flow_to_routing_points: 6 of 10 starts landed on V(G) in 200 attempts
+│ (box = 3.0); raise `box` or `max_attempts`
+```
+
+`box`, `nstarts`, `proj_tol` and `max_attempts` pass through `routing_points` and
+`find_connectivity_matrix`. For the 3RPR example (constants of size 16 and 100)
+`box = 20.0` takes the hit rate from ~0 to roughly 1 in 5, which is the difference
+between the flow stage not finishing and taking about a second.
+
 Comments and suggestions are welcome!
 
