@@ -25,26 +25,28 @@ vars = vcat(p[1:2], ϕ[1:2], c[1:2])
 
 JF = differentiate(F, vars)
 
-r = routing_function(det(JF[1:4,1:4]), vars)
+r = RoutingFunction(det(JF[1:4,1:4]), vars)
 
-routPoints = routing_points(r, F)
+# build the cache once: every routine below reuses its compiled systems and buffers
+cache = RoutingCache(r, F)
 
-index_dict = sort_routing_points_by_index(r, F, routPoints)
+# this system carries constants of size A[2] = 16 and c3 = 100, so the part of
+# V(F) we care about is nowhere near the default [-3,3]^6 search box and almost no
+# random start projects onto the variety. 20 gets the hit rate up to roughly 1/3.
+routPoints = routing_points(cache; box = 20.0, verbose = true)
+
+index_dict = sort_routing_points_by_index(cache, routPoints)
 
 initial_points = vcat([v for (k,v) in index_dict if k > 0]...)
 final_points = index_dict[0]
 
-solve_ivp(r, F, initial_points[1], final_points; Verbose = true, grad_step_size = 1.0, tol = 2.0, start_step_size = 1.1)
-solve_ivp(r, F, initial_points[2], final_points; Verbose = true, grad_step_size = 1.0, tol = 2.0, start_step_size = 1.1)
-solve_ivp(r, F, initial_points[3], final_points; Verbose = true, grad_step_size = 1.0, tol = 2.0, start_step_size = 1.1)
-solve_ivp(r, F, initial_points[4], final_points; Verbose = true, grad_step_size = 1.0, tol = 2.0, start_step_size = 1.1)
-solve_ivp(r, F, initial_points[5], final_points; Verbose = true, grad_step_size = 1.0, tol = 2.0, start_step_size = 1.1)
-solve_ivp(r, F, initial_points[6], final_points; Verbose = true, grad_step_size = 1.0, tol = 2.0, start_step_size = 1.1)
-solve_ivp(r, F, initial_points[7], final_points; Verbose = true, grad_step_size = 1.0, tol = 2.0, start_step_size = 1.1)
-solve_ivp(r, F, initial_points[8], final_points; Verbose = true, grad_step_size = 1.0, tol = 2.0, start_step_size = 1.1)
+for P in initial_points
+    solve_ivp(cache, P, final_points; Verbose = true, grad_step_size = 1.0, tol = 2.0, start_step_size = 1.1)
+end
 
 
 
 
-M, routPoints = find_connectivity_matrix(r, F; grad_step_size = 1.0, tol = 2.0, start_step_size = 1.1)
+M, routPoints = find_connectivity_matrix(cache; grad_step_size = 1.0, tol = 2.0,
+                                         start_step_size = 1.1, box = 20.0, verbose = true)
 
