@@ -99,6 +99,8 @@ function flow_to_routing_points(
     return isempty(pts) ? pts : HC.unique_points(pts)
 end
 
+# lots of ideas in this function and elsewhere in this package
+# are adapted from HypersurfaceRegions.jl and ProjectedHypersurfaces.jl.
 function routing_points(
     cache::RoutingCache;
     all_vars::Bool = false,
